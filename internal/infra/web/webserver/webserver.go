@@ -3,7 +3,6 @@ package webserver
 import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/v5/middleware"
-	httpSwagger "github.com/swaggo/http-swagger"
 	"net/http"
 )
 
@@ -25,7 +24,7 @@ func NewWebServer(serverPort string) *WebServer {
 
 func (s *WebServer) AddHandler(method, path string, handler http.HandlerFunc) {
 	fullPath := "/api/v1" + path
-	if path == "/swagger/*" {
+	if path == "/docs/*" {
 		fullPath = path
 	}
 	if s.Handlers[fullPath] == nil {
@@ -36,10 +35,6 @@ func (s *WebServer) AddHandler(method, path string, handler http.HandlerFunc) {
 
 func (s *WebServer) Start() error {
 	s.Router.Use(middleware.Logger)
-
-	s.Router.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:"+s.WebServerPort+"/swagger/doc.json"),
-	))
 
 	for path, methodHandlers := range s.Handlers {
 		for method, handler := range methodHandlers {

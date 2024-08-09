@@ -50,8 +50,8 @@ func main() {
 	webProductHandler := web.NewWebProductHandler(createProductUseCase, productRepository)
 
 	webServer.AddHandler(http.MethodPost, "/products", webProductHandler.Create)
-	webServer.AddHandler(http.MethodGet, "/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:"+config.WebServerPort+"/swagger/doc.json"),
+	webServer.AddHandler(http.MethodGet, "/docs/*", httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:"+config.WebServerPort+"/docs/doc.json"),
 	))
 
 	fmt.Println("Starting web server on port", config.WebServerPort)
