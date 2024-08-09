@@ -27,7 +27,6 @@ func (c *CreateProductUseCase) Execute(input ProductInputDTO) (ProductOutputDTO,
 	if err := c.ProductRepository.Create(product); err != nil {
 		return ProductOutputDTO{}, err
 	}
-
 	dto := ProductOutputDTO{
 		ID:          product.GetID(),
 		Name:        product.GetName(),

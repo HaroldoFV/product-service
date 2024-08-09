@@ -1,0 +1,15 @@
+### Create a new product
+POST http://localhost:8000/api/v1/products
+Content-Type: application/json
+
+{
+  "name": "Example Product",
+  "description": "This is an example product",
+  "price": 29.99
+}
+
+### Get Swagger UI
+GET http://localhost:8000/swagger/index.html
+
+### Get Swagger JSON
+GET http://localhost:8000/swagger/dc.json

@@ -16,7 +16,7 @@ func NewProductRepository(db *sql.DB) *ProductRepository {
 }
 
 func (r *ProductRepository) Create(product *domain.Product) error {
-	stmt, err := r.Db.Prepare("INSERT INTO product (id, name, description, price, status) VALUES(?, ?, ?, ?, ?)")
+	stmt, err := r.Db.Prepare("INSERT INTO products (id, name, description, price, status) VALUES ($1, $2, $3, $4, $5)")
 	if err != nil {
 		return err
 	}

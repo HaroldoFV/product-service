@@ -1,0 +1,54 @@
+basePath: /api/v1
+definitions:
+  usecase.ProductInputDTO:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+  usecase.ProductOutputDTO:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      status:
+        type: string
+    type: object
+host: localhost:8000
+info:
+  contact: {}
+  description: This is a product microservice API.
+  title: Product Service API
+  version: "1.0"
+paths:
+  /products:
+    post:
+      consumes:
+      - application/json
+      description: Create a new product with the input payload
+      parameters:
+      - description: Create product
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.ProductInputDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/usecase.ProductOutputDTO'
+      summary: Create a new product
+      tags:
+      - products
+swagger: "2.0"
