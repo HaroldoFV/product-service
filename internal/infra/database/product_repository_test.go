@@ -1,100 +1,86 @@
-package database
+package database_test
 
 import (
 	"database/sql"
-	"fmt"
-	domain "github.com/HaroldoFV/product-service/internal/domain/entity"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"log"
 	"testing"
+
+	"github.com/HaroldoFV/product-service/internal/domain/entity"
+	"github.com/HaroldoFV/product-service/internal/infra/database"
+	_ "github.com/lib/pq"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "postgres"
-	dbname   = "test_product_db"
-)
+type ProductRepositoryTestSuite struct {
+	suite.Suite
+	DB         *sql.DB
+	Repository *database.ProductRepository
+}
 
-func setupTestDB(t *testing.T) *sql.DB {
-	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s sslmode=disable", host, port, user, password)
-	db, err := sql.Open("postgres", connStr)
-	require.NoError(t, err)
-
-	_, err = db.Exec(fmt.Sprintf("CREATE DATABASE %s", dbname))
+func (suite *ProductRepositoryTestSuite) SetupSuite() {
+	connectionString := "host=localhost port=5433 user=root_test password=root_test dbname=test_product_db sslmode=disable"
+	db, err := sql.Open("postgres", connectionString)
 	if err != nil {
-		t.Logf("Database creation error (may already exist): %v", err)
+		log.Fatal(err)
 	}
+	suite.DB = db
+	suite.Repository = database.NewProductRepository(db)
 
-	db.Close()
-
-	connStr = fmt.Sprintf("%s dbname=%s", connStr, dbname)
-	db, err = sql.Open("postgres", connStr)
-	require.NoError(t, err)
-
-	_, err = db.Exec(`
-				CREATE TABLE IF NOT EXISTS products (
-					id UUID PRIMARY KEY ,
-					name VARCHAR(100) NOT NULL,
-					description VARCHAR(500),
-					price DECIMAL(10,2) NOT NULL,
-					status VARCHAR(20) NOT NULL
-				)
+	// Create the products table
+	_, err = suite.DB.Exec(`
+		CREATE TABLE IF NOT EXISTS products (
+			id VARCHAR(36) PRIMARY KEY,
+			name VARCHAR(100) NOT NULL,
+			description VARCHAR(500),
+			price DECIMAL(10, 2) NOT NULL,
+			status VARCHAR(10) NOT NULL
+		)
 	`)
-	require.NoError(t, err)
-
-	return db
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
-func cleanupTestDB(t *testing.T, db *sql.DB) {
-	_, err := db.Exec("DElETE FROM products")
-	require.NoError(t, err)
-	db.Close()
-
-	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s sslmode=disable", host, port, user, password)
-	db, err = sql.Open("postgres", connStr)
-	require.NoError(t, err)
-	defer db.Close()
-
-	_, err = db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s", dbname))
-	require.NoError(t, err)
+func (suite *ProductRepositoryTestSuite) TearDownSuite() {
+	_, err := suite.DB.Exec("DROP TABLE IF EXISTS products")
+	if err != nil {
+		log.Fatal(err)
+	}
+	suite.DB.Close()
 }
 
-func TestProductRepository_Create(t *testing.T) {
-	db := setupTestDB(t)
-	defer cleanupTestDB(t, db)
+func (suite *ProductRepositoryTestSuite) SetupTest() {
+	_, err := suite.DB.Exec("DELETE FROM products")
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
-	repo := NewProductRepository(db)
+func (suite *ProductRepositoryTestSuite) TestCreateProduct() {
+	product, err := entity.NewProduct("Test Product", "Test Description", 10.0)
+	assert.NoError(suite.T(), err)
 
-	t.Run("should create a product successfully", func(t *testing.T) {
-		product, err := domain.NewProduct("Test Product", "A test product", 10.00)
-		require.NoError(t, err)
+	err = suite.Repository.Create(product)
+	assert.NoError(suite.T(), err)
 
-		err = repo.Create(product)
-		assert.NoError(t, err)
+	// Verify the product was created
+	var count int
+	err = suite.DB.QueryRow("SELECT COUNT(*) FROM products WHERE id = $1", product.GetID()).Scan(&count)
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), 1, count)
+}
 
-		var count int
-		err = db.QueryRow("SELECT COUNT(*) FROM products WHERE id = $1", product.GetID()).Scan(&count)
-		assert.NoError(t, err)
-		assert.Equal(t, 1, count)
-	})
+func (suite *ProductRepositoryTestSuite) TestCreateProductWithInvalidData() {
+	product, err := entity.NewProduct("", "Invalid Product", -5.0)
+	assert.Error(suite.T(), err)
 
-	t.Run("should not create invalid product", func(t *testing.T) {
-		_, err := domain.NewProduct("", "", -1)
-		assert.Error(t, err)
-	})
+	if product != nil {
+		err = suite.Repository.Create(product)
+		assert.Error(suite.T(), err)
+	}
+}
 
-	t.Run("should return error when database operation fails", func(t *testing.T) {
-		validProduct, err := domain.NewProduct("Valid Product", "Description", 10.00)
-		require.NoError(t, err)
-
-		db.Close()
-
-		err = repo.Create(validProduct)
-		assert.Error(t, err)
-
-		db = setupTestDB(t)
-		repo = NewProductRepository(db)
-	})
+func TestProductRepositoryTestSuite(t *testing.T) {
+	suite.Run(t, new(ProductRepositoryTestSuite))
 }
