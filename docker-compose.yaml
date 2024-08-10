@@ -21,7 +21,7 @@ services:
     container_name: product_db_test
     environment:
       POSTGRES_DB: test_product_db
-      POSTGRES_USER: testuser
+      POSTGRES_USER: root_test
       POSTGRES_PASSWORD: root_test
     ports:
       - "5433:5432"

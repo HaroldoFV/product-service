@@ -113,3 +113,7 @@ func (p *Product) GetStatus() string {
 func (p *Product) GetPrice() float64 {
 	return p.price
 }
+
+func (p *Product) SetID(id string) {
+	p.id = id
+}

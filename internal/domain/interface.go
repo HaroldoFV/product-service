@@ -6,5 +6,5 @@ type ProductRepositoryInterface interface {
 	Create(product *domain.Product) error
 	//Update(product *domain.Product) error
 	//GetByID(id string) (*domain.Product, error)
-	//List() ([]*domain.Product, error)
+	List(page, limit int, sort string) ([]*domain.Product, int, error)
 }
