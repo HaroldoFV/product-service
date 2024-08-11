@@ -77,3 +77,54 @@ func (r *ProductRepository) List(page, limit int, sort string) ([]*domain.Produc
 	}
 	return products, totalCount, nil
 }
+
+func (r *ProductRepository) Update(product *domain.Product) error {
+	stmt, err := r.Db.Prepare("UPDATE products SET name = $1, description = $2, price = $3 WHERE id = $4")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(product.GetName(), product.GetDescription(), product.GetPrice(),
+		product.GetID())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *ProductRepository) GetByID(id string) (*domain.Product, error) {
+	query := "SELECT id, name, description, price, status FROM products WHERE id = $1"
+
+	row := r.Db.QueryRow(query, id)
+
+	var product *domain.Product
+	var idStr, name, description, status string
+	var price float64
+
+	err := row.Scan(&idStr, &name, &description, &price, &status)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("product with id %s not found", id)
+		}
+		return nil, err
+	}
+
+	product, err = domain.NewProduct(name, description, price)
+	if err != nil {
+		return nil, err
+	}
+
+	product.SetID(idStr)
+
+	if status == domain.ENABLED {
+		err = product.Enable()
+	} else {
+		err = product.Disable()
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return product, nil
+}

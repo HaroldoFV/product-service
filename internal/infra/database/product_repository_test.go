@@ -134,6 +134,66 @@ func (suite *ProductRepositoryTestSuite) TestList() {
 	}
 }
 
+func (suite *ProductRepositoryTestSuite) TestUpdate() {
+	initialProduct, err := entity.NewProduct("Test Product", "Test Description", 10.0)
+	suite.Require().NoError(err)
+
+	err = suite.Repository.Create(initialProduct)
+	suite.Require().NoError(err)
+
+	err = initialProduct.Update("Updated Product", "Updated Description")
+	suite.Require().NoError(err)
+
+	err = initialProduct.ChangePrice(20.0)
+	suite.Require().NoError(err)
+
+	err = suite.Repository.Update(initialProduct)
+	suite.Require().NoError(err)
+
+	updatedProduct, err := suite.Repository.GetByID(initialProduct.GetID())
+	suite.Require().NoError(err)
+
+	assert.Equal(suite.T(), "Updated Product", updatedProduct.GetName())
+	assert.Equal(suite.T(), "Updated Description", updatedProduct.GetDescription())
+	assert.Equal(suite.T(), 20.0, updatedProduct.GetPrice())
+}
+
+func (suite *ProductRepositoryTestSuite) TestGetByID() {
+	product, err := entity.NewProduct("Test Product", "Test Description", 10.0)
+	suite.Require().NoError(err)
+
+	err = suite.Repository.Create(product)
+	suite.Require().NoError(err)
+
+	testCases := []struct {
+		name          string
+		id            string
+		expectedError bool
+	}{
+		{"Existing product", product.GetID(), false},
+		{"Non-existing product", "non-existent-id", true},
+	}
+
+	for _, tc := range testCases {
+		suite.T().Run(tc.name, func(t *testing.T) {
+			retrievedProduct, err := suite.Repository.GetByID(tc.id)
+
+			if tc.expectedError {
+				assert.Error(t, err)
+				assert.Nil(t, retrievedProduct)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, retrievedProduct)
+				assert.Equal(t, product.GetID(), retrievedProduct.GetID())
+				assert.Equal(t, product.GetName(), retrievedProduct.GetName())
+				assert.Equal(t, product.GetDescription(), retrievedProduct.GetDescription())
+				assert.Equal(t, product.GetPrice(), retrievedProduct.GetPrice())
+				assert.Equal(t, product.GetStatus(), retrievedProduct.GetStatus())
+			}
+		})
+	}
+}
+
 func TestProductRepositoryTestSuite(t *testing.T) {
 	suite.Run(t, new(ProductRepositoryTestSuite))
 }

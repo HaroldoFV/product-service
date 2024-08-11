@@ -85,7 +85,7 @@ func (p *Product) Disable() error {
 	return nil
 }
 
-func (p *Product) ChancePrice(price float64) error {
+func (p *Product) ChangePrice(price float64) error {
 	p.price = price
 	err := p.IsValid()
 	if err != nil {
