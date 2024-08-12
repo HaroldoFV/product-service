@@ -128,3 +128,22 @@ func (r *ProductRepository) GetByID(id string) (*domain.Product, error) {
 
 	return product, nil
 }
+
+func (r *ProductRepository) Delete(id string) error {
+	query := "DELETE FROM products WHERE id = $1"
+	result, err := r.Db.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("product with id %s not found", id)
+	}
+
+	return nil
+}

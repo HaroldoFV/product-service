@@ -194,6 +194,38 @@ func (suite *ProductRepositoryTestSuite) TestGetByID() {
 	}
 }
 
+func (suite *ProductRepositoryTestSuite) TestDelete() {
+	product, err := entity.NewProduct("Test Product", "Test Description", 10.0)
+	suite.Require().NoError(err)
+
+	err = suite.Repository.Create(product)
+	suite.Require().NoError(err)
+
+	testCases := []struct {
+		name          string
+		id            string
+		expectedError bool
+	}{
+		{"Produto existente", product.GetID(), false},
+		{"Produto não existente", "non-existent-id", true},
+	}
+
+	for _, tc := range testCases {
+		suite.T().Run(tc.name, func(t *testing.T) {
+			err := suite.Repository.Delete(tc.id)
+
+			if tc.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+
+				_, err := suite.Repository.GetByID(tc.id)
+				assert.Error(t, err)
+			}
+		})
+	}
+}
+
 func TestProductRepositoryTestSuite(t *testing.T) {
 	suite.Run(t, new(ProductRepositoryTestSuite))
 }

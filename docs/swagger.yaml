@@ -26,8 +26,6 @@ definitions:
     properties:
       description:
         type: string
-      id:
-        type: string
       name:
         type: string
       price:
@@ -121,6 +119,33 @@ paths:
       tags:
       - products
   /products/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a Product
+      parameters:
+      - description: Product ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/web.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/web.Error'
+      summary: Delete a product
+      tags:
+      - products
     get:
       consumes:
       - application/json

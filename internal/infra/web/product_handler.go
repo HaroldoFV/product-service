@@ -161,7 +161,7 @@ func (h *WebProductHandler) Update(w http.ResponseWriter, r *http.Request) {
 	output, err := updateProductUseCase.Execute(dto)
 	if err != nil {
 		status := http.StatusInternalServerError
-		if err.Error() == "product not found" {
+		if err.Error() == fmt.Sprintf("product with id %s not found", id) {
 			status = http.StatusNotFound
 		}
 		w.WriteHeader(status)
@@ -231,6 +231,47 @@ func (h *WebProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+}
+
+// Delete Product godoc
+// @Summary Delete a product
+// @Description Delete a Product
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param id path string true "Product ID" Format(uuid)
+// @Success 200
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /products/{id} [delete]
+func (h *WebProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		err := json.NewEncoder(w).Encode(Error{Message: "missing product ID"})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	deleteProductUseCase := usecase.NewDeleteProductUseCase(h.ProductRepository)
+	err := deleteProductUseCase.Execute(id)
+	if err != nil {
+		status := http.StatusInternalServerError
+		if err.Error() == fmt.Sprintf("product with id %s not found", id) {
+			status = http.StatusNotFound
+		}
+		w.WriteHeader(status)
+		err := json.NewEncoder(w).Encode(Error{Message: err.Error()})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNoContent)
 }
 
 type PaginatedProductResponse struct {

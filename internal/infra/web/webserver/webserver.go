@@ -45,6 +45,8 @@ func (s *WebServer) Start() error {
 				s.Router.Get(path, handler)
 			case http.MethodPut:
 				s.Router.Put(path, handler)
+			case http.MethodDelete:
+				s.Router.Delete(path, handler)
 			}
 		}
 	}

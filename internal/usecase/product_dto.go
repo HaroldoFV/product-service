@@ -15,7 +15,7 @@ type ProductOutputDTO struct {
 }
 
 type ProductUpdateInputDTO struct {
-	ID          string  `json:"id"`
+	ID          string  `json:"-"`
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
