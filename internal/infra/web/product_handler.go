@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/HaroldoFV/product-service/internal/domain"
-	"github.com/HaroldoFV/product-service/internal/usecase"
+	usecase "github.com/HaroldoFV/product-service/internal/usecase"
+	"github.com/go-chi/chi"
 	"net/http"
+	"strconv"
 )
 
 type WebProductHandler struct {
@@ -62,4 +64,225 @@ func (h *WebProductHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println("Product created successfully")
+}
+
+// List Products godoc
+// @Summary List Products
+// @Description List Products
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param page query int false "page number" default(1)
+// @Param limit query int false "limit" default(10)
+// @Param sort query string false "sort field" default("id")
+// @Success 200 {object} PaginatedProductResponse
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /products [get]
+func (h *WebProductHandler) GetProducts(w http.ResponseWriter, r *http.Request) {
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+	if err != nil || limit < 1 {
+		limit = 10
+	}
+
+	sort := r.URL.Query().Get("sort")
+	if sort == "" {
+		sort = "id"
+	}
+
+	listProductsUseCase := usecase.NewListProductsUseCase(h.ProductRepository)
+	output, totalCount, err := listProductsUseCase.Execute(page, limit, sort)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response := PaginatedProductResponse{
+		Products:   output,
+		TotalCount: totalCount,
+		Page:       page,
+		Limit:      limit,
+		TotalPages: (totalCount + limit - 1) / limit,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		fmt.Println("Error encoding response:", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+}
+
+// Update Product godoc
+// @Summary Update Product
+// @Description Update Product
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param id path string true "Product ID" Format(uuid)
+// @Param request body usecase.ProductUpdateInputDTO true "product Request"
+// @Success 200 {object} usecase.ProductOutputDTO
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /products/{id} [put]
+func (h *WebProductHandler) Update(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		err := json.NewEncoder(w).Encode(Error{Message: "missing product ID"})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	var dto usecase.ProductUpdateInputDTO
+	err := json.NewDecoder(r.Body).Decode(&dto)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		err := json.NewEncoder(w).Encode(Error{Message: err.Error()})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	dto.ID = id
+
+	updateProductUseCase := usecase.NewUpdateProductUseCase(h.ProductRepository)
+	output, err := updateProductUseCase.Execute(dto)
+	if err != nil {
+		status := http.StatusInternalServerError
+		if err.Error() == fmt.Sprintf("product with id %s not found", id) {
+			status = http.StatusNotFound
+		}
+		w.WriteHeader(status)
+		err := json.NewEncoder(w).Encode(Error{Message: err.Error()})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(output)
+}
+
+// GetProduct godoc
+// @Summary Get Product
+// @Description Get Product
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param id path string true "Product ID" Format(uuid)
+// @Success 200 {object} usecase.ProductOutputDTO
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /products/{id} [get]
+func (h *WebProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		err := json.NewEncoder(w).Encode(Error{Message: "missing product ID"})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	getProductUseCase := usecase.NewGetProductUseCase(h.ProductRepository)
+	output, err := getProductUseCase.Execute(id)
+	if err != nil {
+		status := http.StatusInternalServerError
+		if err.Error() == fmt.Sprintf("product with id %s not found", id) {
+			status = http.StatusNotFound
+		}
+		w.WriteHeader(status)
+		err := json.NewEncoder(w).Encode(Error{Message: err.Error()})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	response := usecase.ProductOutputDTO{
+		ID:          output.ID,
+		Name:        output.Name,
+		Description: output.Description,
+		Price:       output.Price,
+		Status:      output.Status,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		fmt.Println("Error encoding response:", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+}
+
+// Delete Product godoc
+// @Summary Delete a product
+// @Description Delete a Product
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param id path string true "Product ID" Format(uuid)
+// @Success 200
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /products/{id} [delete]
+func (h *WebProductHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		err := json.NewEncoder(w).Encode(Error{Message: "missing product ID"})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	deleteProductUseCase := usecase.NewDeleteProductUseCase(h.ProductRepository)
+	err := deleteProductUseCase.Execute(id)
+	if err != nil {
+		status := http.StatusInternalServerError
+		if err.Error() == fmt.Sprintf("product with id %s not found", id) {
+			status = http.StatusNotFound
+		}
+		w.WriteHeader(status)
+		err := json.NewEncoder(w).Encode(Error{Message: err.Error()})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNoContent)
+}
+
+type PaginatedProductResponse struct {
+	Products   []usecase.ProductOutputDTO `json:"products"`
+	TotalCount int                        `json:"total_count"`
+	Page       int                        `json:"page"`
+	Limit      int                        `json:"limit"`
+	TotalPages int                        `json:"total_pages"`
+}
+
+// Error represents an error response
+type Error struct {
+	Message string `json:"message"`
 }

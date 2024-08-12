@@ -22,6 +22,35 @@ definitions:
       status:
         type: string
     type: object
+  usecase.ProductUpdateInputDTO:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    type: object
+  web.Error:
+    properties:
+      message:
+        type: string
+    type: object
+  web.PaginatedProductResponse:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      products:
+        items:
+          $ref: '#/definitions/usecase.ProductOutputDTO'
+        type: array
+      total_count:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
 host: localhost:8000
 info:
   contact: {}
@@ -30,6 +59,44 @@ info:
   version: "1.0"
 paths:
   /products:
+    get:
+      consumes:
+      - application/json
+      description: List Products
+      parameters:
+      - default: 1
+        description: page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: limit
+        in: query
+        name: limit
+        type: integer
+      - default: '"id"'
+        description: sort field
+        in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/web.PaginatedProductResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/web.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/web.Error'
+      summary: List Products
+      tags:
+      - products
     post:
       consumes:
       - application/json
@@ -49,6 +116,98 @@ paths:
           schema:
             $ref: '#/definitions/usecase.ProductOutputDTO'
       summary: Create a new product
+      tags:
+      - products
+  /products/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a Product
+      parameters:
+      - description: Product ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/web.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/web.Error'
+      summary: Delete a product
+      tags:
+      - products
+    get:
+      consumes:
+      - application/json
+      description: Get Product
+      parameters:
+      - description: Product ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/usecase.ProductOutputDTO'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/web.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/web.Error'
+      summary: Get Product
+      tags:
+      - products
+    put:
+      consumes:
+      - application/json
+      description: Update Product
+      parameters:
+      - description: Product ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: product Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/usecase.ProductUpdateInputDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/usecase.ProductOutputDTO'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/web.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/web.Error'
+      summary: Update Product
       tags:
       - products
 swagger: "2.0"

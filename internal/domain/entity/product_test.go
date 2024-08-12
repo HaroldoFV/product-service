@@ -62,14 +62,14 @@ func TestProduct_Disable(t *testing.T) {
 func TestProduct_ChancePrice(t *testing.T) {
 	t.Run("Change to Valid Price", func(t *testing.T) {
 		product, _ := entity.NewProduct("Product 1", "Product 1 description", 99.90)
-		err := product.ChancePrice(150.00)
+		err := product.ChangePrice(150.00)
 		require.Nil(t, err)
 		require.Equal(t, 150.00, product.GetPrice())
 	})
 
 	t.Run("Change to Invalid Price", func(t *testing.T) {
 		product, _ := entity.NewProduct("Product 1", "Product 1 description", 99.90)
-		err := product.ChancePrice(-10.00)
+		err := product.ChangePrice(-10.00)
 		require.EqualError(t, err, "price must be greater or equal zero")
 	})
 }

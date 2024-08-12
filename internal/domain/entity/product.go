@@ -85,7 +85,7 @@ func (p *Product) Disable() error {
 	return nil
 }
 
-func (p *Product) ChancePrice(price float64) error {
+func (p *Product) ChangePrice(price float64) error {
 	p.price = price
 	err := p.IsValid()
 	if err != nil {
@@ -112,4 +112,8 @@ func (p *Product) GetStatus() string {
 
 func (p *Product) GetPrice() float64 {
 	return p.price
+}
+
+func (p *Product) SetID(id string) {
+	p.id = id
 }
