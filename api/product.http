@@ -1,15 +1,71 @@
-### Create a new product
-POST http://localhost:8000/api/v1/products
-Content-Type: application/json
+@baseUrl = http://localhost:8000/api/v1
+@contentType = application/json
+
+### Create a new product: Cadeira Gamer
+POST {{baseUrl}}/products
+Content-Type: {{contentType}}
 
 {
-  "name": "Example Product",
-  "description": "This is an example product",
-  "price": 29.99
+  "name": "Cadeira Gamer XPro",
+  "description": "Cadeira gamer ergonômica com apoio lombar ajustável",
+  "price": 999.99
 }
 
-### Get Swagger UI
-GET http://localhost:8000/swagger/index.html
+### List Products
+GET {{baseUrl}}/products?page=1&limit=10&sort=id
+Content-Type: {{contentType}}
 
-### Get Swagger JSON
-GET http://localhost:8000/swagger/dc.json
+### Get a specific product
+# Replace {id} with an actual product ID
+GET {{baseUrl}}/products/818f00b4-e8b2-4c08-a573-484f74bd0ae9
+Content-Type: {{contentType}}
+
+### Update a product: MacBook
+# Replace {id} with an actual product ID
+PUT {{baseUrl}}/products/818f00b4-e8b2-4c08-a573-484f74bd0ae9
+Content-Type: {{contentType}}
+
+{
+  "name": "MacBook Pro M2",
+  "description": "Notebook Apple com chip M2, 16GB RAM e 512GB SSD",
+  "price": 12999.99
+}
+
+### Delete a product
+# Replace {id} with an actual product ID
+DELETE {{baseUrl}}/products/818f00b4-e8b2-4c08-a573-484f74bd0ae9
+Content-Type: {{contentType}}
+
+### Create another product: Teclado Mecânico
+POST {{baseUrl}}/products
+Content-Type: {{contentType}}
+
+{
+  "name": "Teclado Mecânico RGB",
+  "description": "Teclado mecânico para jogos com iluminação RGB personalizável",
+  "price": 449.99
+}
+
+### Create product: Mouse Gamer
+POST {{baseUrl}}/products
+Content-Type: {{contentType}}
+
+{
+  "name": "Mouse Gamer 16000 DPI",
+  "description": "Mouse gamer de alta precisão com 7 botões programáveis",
+  "price": 299.99
+}
+
+### Create product: Monitor Ultrawide
+POST {{baseUrl}}/products
+Content-Type: {{contentType}}
+
+{
+  "name": "Monitor Ultrawide 34\"",
+  "description": "Monitor curvo ultrawide de 34 polegadas com resolução 3440x1440",
+  "price": 3499.99
+}
+
+### List Products (to verify creation and deletion)
+GET {{baseUrl}}/products?page=1&limit=10&sort=id
+Content-Type: {{contentType}}
