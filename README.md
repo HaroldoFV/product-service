@@ -72,3 +72,8 @@ Nota: Os testes de integração usarão o banco de dados de teste (postgres_test
 5433.
 
 
+## Diagramas
+<img width="1089" alt="Screenshot 2024-08-11 at 11 49 03 PM" src="https://github.com/user-attachments/assets/a038e810-bc0d-4822-9cab-ef77449f8bba">
+
+
+
