@@ -36,19 +36,16 @@ Para executar este projeto, siga os passos abaixo:
    `cd product-service`
 
 3. Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
-   ```DB_DRIVER=postgres
-      DB_HOST=postgres
-      DB_PORT=5432
-      DB_USER=seu_usuario
-      DB_PASSWORD=sua_senha
-      DB_NAME=nome_do_banco
-      WEB_SERVER_PORT=8000
-      TEST_DB_HOST=localhost
-      TEST_DB_PORT=5433
-      TEST_DB_USER=seu_usuario
-      TEST_DB_PASSWORD=sua_senha
-      TEST_DB_NAME=test_nome_do_banco
-   
+   ```  
+   DB_DRIVER=postgres
+   DB_HOST=postgres
+   DB_PORT=5432
+   DB_USER=seu_usuario
+   DB_PASSWORD=sua_senha
+   DB_NAME=nome_do_banco
+   WEB_SERVER_PORT=8000
+
+
 4. Inicie os serviços usando Docker Compose:
 
    `docker-compose up -d`
@@ -61,9 +58,9 @@ Para executar este projeto, siga os passos abaixo:
 
 Para executar os testes, siga estas etapas:
 
-1. Certifique-se de que o container de teste do PostgreSQL está em execução:
+1. Certifique-se de que o container de teste do PostgreSQL(product_db_test) está em execução:
 
-   `docker-compose up -d postgres_test`
+   `docker-compose ps`
 
 2. Execute os testes usando o seguinte comando:
 
